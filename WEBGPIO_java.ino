@@ -44,7 +44,7 @@ JsonObject& prepareResponse(JsonBuffer& jsonBuffer) {
   JsonArray& WaterPump = root.createNestedArray("WaterPump");
     WaterPump.add(LED_state[0]);
   JsonArray& EsPvValues = root.createNestedArray("Systemv");
-    EsPvValues.add(3);
+    EsPvValues.add(ESP8266-12E);
   return root;
 }
 
@@ -147,7 +147,7 @@ void loop() {
 			else if (HTTP_req.indexOf("getJSON") > -1) {
 			//client.println(millis()/10000);
 			gettemperature();
-			getdistance();
+			//getdistance();
       			StaticJsonBuffer<500> jsonBuffer;
       			JsonObject& json = prepareResponse(jsonBuffer);
       			writeResponse(client, json);

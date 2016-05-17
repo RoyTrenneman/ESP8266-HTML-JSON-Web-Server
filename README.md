@@ -1,6 +1,6 @@
 # ESP8266-Server-HTML-JSON
 Remote control an irrigation water pump through javascript Webpage or GET requests. 
-Get temperature / humidity, and level of the water tank.
+Get temperature / humidity from DHT22 sensor, and level of the water tank from ultrasonic sensor(TO DO).
 
 ### ESP8266-12E
 
@@ -56,5 +56,4 @@ http://IP/
 --> Display the WebPage !
 
 ## TODO
-Add Temp & humidity Sensor (like DHT22)
-Add level water mesurement through sonar sensor
+Add level water mesurement through ultrasonic sensor
