@@ -10,29 +10,25 @@
 #define DHTTYPE DHT22
 #define DHTPIN  5
 
-//For futur use
-#define ECHO 4
-#define TRIGGER 13
-
 #define GPIO 2
 
-DHT dht(DHTPIN, DHTTYPE, 11); // 11 works fine for ESP8266
-float humidity, temp_f;  // Values read from sensor
-unsigned long previousMillis = 0;        // will store last temp was read
-const long interval = 2000;              // interval at which to read sensor
 
 /////////////////////////////////////////////////////////////////////////////////////////
-// Access point credentials
+// Access point credential and port Servers
 const char* ssid = "Livebox";
 const char* password = "****";
-//////////////////////////////////////////////////////////////////////////////////////////
-
 WiFiServer server(80);
 WiFiClient client;
+//////////////////////////////////////////////////////////////////////////////////////////
 
+DHT dht(DHTPIN, DHTTYPE, 11);            // 11 works fine for ESP8266
+
+float humidity, temp_f;                  // Values read from sensor
+unsigned long previousMillis = 0;        // will store last temp was read
+const long interval = 2000;              // interval at which to read sensor
+int stop = 0 ;                           // Stopp Web Client
 boolean LED_state[4] = {0};
 char req_index = 0; 
-boolean LED_status = 0;   // state of LED, off by default
 String HTTP_req;
 
 JsonObject& prepareResponse(JsonBuffer& jsonBuffer) {
@@ -44,20 +40,13 @@ JsonObject& prepareResponse(JsonBuffer& jsonBuffer) {
   JsonArray& WaterPump = root.createNestedArray("WaterPump");
     WaterPump.add(LED_state[0]);
   JsonArray& EsPvValues = root.createNestedArray("Systemv");
-    EsPvValues.add(ESP8266-12E);
+    EsPvValues.add("ESP8266-12E");
   return root;
 }
-
-
 
 void setup() {
 
 pinMode(GPIO, OUTPUT);									
-
-//For futur use
-pinMode(TRIGGER, OUTPUT);
-pinMode(ECHO, INPUT);
-
 
 //////////////////////////////////////////////////////////////////////////////////////////
   											//
@@ -75,6 +64,7 @@ pinMode(ECHO, INPUT);
   }											//
 // OTA Upgrade										//
    ArduinoOTA.onStart([]() {								//
+    stopclient();  
     Serial.println("Start");								//
   });											//
   ArduinoOTA.onEnd([]() {								//
@@ -117,6 +107,7 @@ void loop() {
         while (client.connected()) {
   //////////////////////////////////////////////////////////////////////////////////////////
 	ArduinoOTA.handle();
+	if (stop == 1) client.stop();
   //////////////////////////////////////////////////////////////////////////////////////////
 	    if (client.available()) { 
                 char c = client.read();
@@ -147,7 +138,6 @@ void loop() {
 			else if (HTTP_req.indexOf("getJSON") > -1) {
 			//client.println(millis()/10000);
 			gettemperature();
-			//getdistance();
       			StaticJsonBuffer<500> jsonBuffer;
       			JsonObject& json = prepareResponse(jsonBuffer);
       			writeResponse(client, json);
@@ -162,7 +152,10 @@ void loop() {
 		    client.println();
 	            SetLEDs();
                     XML_response(client);
-                    } else {
+		    if (stop == 1) client.stop();
+                    
+			} else {
+			if (stop == 1) client.stop();
                         client.println("<!DOCTYPE html>");
                         client.println("Content-Type: text/html");
                     	client.println("Connection: keep-alive");
@@ -222,10 +215,11 @@ void loop() {
                        //client.println("<p>Example Display of BMP data</p>");
                         	
 			client.println("<div class=\"IO_box\">");
-                        client.println("<h2>Text: </h2>");
-                        client.println("<p>Temperature: <span class=\"temp\">...</span></p>");
-                        client.println("<p>humidity: <span class=\"humidity\">...</span></p>");
-                        client.println("<p>A2: <span class=\"analog\">...</span></p>");
+                        client.println("<font size = \"5\">Temperature: &deg;C <span class=\"temp\">...</span></font>");
+			client.println("<br>");
+			client.println("<br>");
+                        client.println("<font size = \"5\">humidity: % <span class=\"humidity\">...</span></font>");
+                        client.println("<p>Level: <span class=\"analog\">...</span></p>");
                 	client.println("</div>");
 
  client.println("<p>Remplissage:");
@@ -254,13 +248,10 @@ void loop() {
 
 void SetLEDs(void)
 {
-    // LED 1 (pin 6)
-    //if (StrContains(HTTP_req, "LED1=1")) {
       if (HTTP_req.indexOf("LED1=1") > -1 ){
 	 LED_state[0] = 1;  // save LED state
         digitalWrite(GPIO, HIGH);
     }
-    //else if (StrContains(HTTP_req, "LED1=0")) {
         if (HTTP_req.indexOf("LED1=0") > -1 ){
 	 LED_state[0] = 0;  // save LED state
         digitalWrite(GPIO, LOW);
@@ -275,7 +266,6 @@ void XML_response(WiFiClient cl)
     cl.print("<inputs>");
 
     // checkbox LED states
-    // LED1
     cl.print("<LED>");
     if (LED_state[0]) {
         cl.print("checked");
@@ -349,7 +339,6 @@ void writeResponse(WiFiClient& client, JsonObject& json) {
   client.println("Content-Type: application/json");
   client.println("Connection: close");
   client.println();
-
   json.prettyPrintTo(client);
 }
 
@@ -368,8 +357,8 @@ void gettemperature() {
     // Sensor readings may also be up to 2 seconds 'old' (it's a very slow sensor)
     humidity = dht.readHumidity();          // Read humidity (percent)
     temp_f = dht.readTemperature();     // Read temperature as Fahrenheit
-     Serial.println(humidity);
-	 Serial.println(temp_f);
+    // Serial.println(humidity);
+    // Serial.println(temp_f);
 	// Check if any reads failed and exit early (to try again).
     if (isnan(humidity) || isnan(temp_f)) {
       Serial.println("Failed to read from DHT sensor!");
@@ -378,22 +367,12 @@ void gettemperature() {
   }
 }
 
-//For futur use
-void getdistance() {
+void stopclient () {
 
-long duration, distance;
-  digitalWrite(TRIGGER, LOW);  
-  delayMicroseconds(2); 
-  
-  digitalWrite(TRIGGER, HIGH);
-  delayMicroseconds(10); 
-  
-  digitalWrite(TRIGGER, LOW);
-  duration = pulseIn(ECHO, HIGH);
-  distance = (duration/2) / 29.1;
-  
-  Serial.print(distance);
-  Serial.println("Centimeter:");
+stop = 1 ;
+Serial.println("Stopping Web client...");
+Serial.println("Wait...");
+delay (2);              
 
 }
 
