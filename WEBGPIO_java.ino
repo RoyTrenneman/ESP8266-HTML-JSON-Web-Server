@@ -236,7 +236,16 @@ void loop() {
                         client.println("</body>");
                         client.println("</html>");
                     }
-                    HTTP_req = "";
+                    if (c == '\n') {
+                    // last character on line of received text
+                    // starting new line with next character read
+                    currentLineIsBlank = true;
+                    } 
+                    else if (c != '\r') {
+                    // a text character was received from client
+                    currentLineIsBlank = false;
+                    }
+	            HTTP_req = "";
                     break;
                 }
             }
