@@ -1,6 +1,6 @@
 # ESP8266-Server-HTML-JSON
 Remote control an irrigation water pump through javascript Webpage or GET requests. 
-Get temperature / humidity from DHT22 sensor, and level of the water tank from ultrasonic sensor(TO DO).
+Get temperature / humidity from DHT22 sensor, and level of the water tank from ultrasonic sensor.
 
 ### ESP8266-12E
 
@@ -14,7 +14,7 @@ Upgrade OTA is available on this code
 Build and upgrade command:
 
 ``` bash
-platformio run --target upload --upload-port IP_ESP
+platformio run --target upload [ optional --upload-port IP_ESP]
 ```
 ## Example :
 ```
