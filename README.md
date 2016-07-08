@@ -55,5 +55,3 @@ http://IP/
 
 --> Display the WebPage !
 
-## TODO
-Add level water mesurement through ultrasonic sensor
