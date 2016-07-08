@@ -31,7 +31,10 @@ http://IP/getJSON
 --> Request JSON :
 ``` JSON
 {
-  "temperature": [
+ "Level": [
+    -38
+  ],
+ "temperature": [
     "20"
   ],
   "humidity": [
